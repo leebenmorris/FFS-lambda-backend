@@ -26,45 +26,43 @@ const getCommentsByArticleId = `
   ON comments.user_id = users.id 
   WHERE comments.article_id = $1`;
 
+const makeArticleObj = obj => ({
+  _id: obj.id,
+  title: obj.title,
+  articleUrl: obj.href,
+  description: obj.description,
+  articleIsFakeNews: obj.is_fake,
+  pending: obj.pending,
+  organisation: obj.organisation,
+  domainId: obj.domain_id,
+  timeStamp: obj.post_date
+});
+
+const makeCommentsObj = obj => ({
+  _id: obj.id,
+  comment: obj.comment,
+  threadId: obj.connecting_comment_id,
+  articleId: obj.article_id,
+  author: obj.username,
+  votes: obj.votes,
+  timeStamp: obj.date_added
+});
+
 async function buildOutput(articleId) {
   try {
     if (!articleId) {
       const topTenArticles = await db.query(getTopTenArticles);
       pgp.end();
-      return topTenArticles.map(obj => ({
-        _id: obj.id,
-        title: obj.title,
-        articleUrl: obj.href,
-        description: obj.description,
-        articleIsFakeNews: obj.is_fake,
-        pending: obj.pending,
-        timeStamp: obj.post_date,
-        organisation: obj.organisation
-      }));
+      return topTenArticles.map(obj => makeArticleObj(obj));
     }
-    let singleArticle = await db.one(getOneArticle, articleId);
-    singleArticle = {
-      _id: singleArticle.id,
-      title: singleArticle.title,
-      articleUrl: singleArticle.href,
-      description: singleArticle.description,
-      articleIsFakeNews: singleArticle.is_fake,
-      pending: singleArticle.pending,
-      timeStamp: singleArticle.post_date,
-      organisation: singleArticle.organisation
-    };
-    let matchedComments = await db.query(getCommentsByArticleId, articleId);
+    let articleData = await db.one(getOneArticle, articleId);
+    articleData = makeArticleObj(articleData);
+
+    let comments = await db.query(getCommentsByArticleId, articleId);
+    comments = comments.map(obj => makeCommentsObj(obj));
+    
     pgp.end();
-    matchedComments = matchedComments.map(obj => ({
-      _id: obj.id,
-      comment: obj.comment,
-      threadId: obj.connecting_comment_id,
-      articleId: obj.article_id,
-      author: obj.username,
-      votes: obj.votes,
-      timeStamp: obj.date_added
-    }));
-    return { articleData: singleArticle, comments: matchedComments };
+    return { articleData: articleData, comments: comments };
   }
   catch (err) {
     return err;

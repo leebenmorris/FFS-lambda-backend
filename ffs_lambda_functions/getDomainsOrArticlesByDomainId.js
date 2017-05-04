@@ -16,6 +16,28 @@ const getArticlesByDomainId = `
   WHERE domain_id = $1 
   ORDER BY articles.post_date ASC`;
 
+const makeArticleObj = obj => ({
+  _id: obj.id,
+  title: obj.title,
+  articleUrl: obj.href,
+  description: obj.description,
+  articleIsFakeNews: obj.is_fake,
+  pending: obj.pending,
+  organisation: obj.organisation,
+  domainId: obj.domain_id,
+  timeStamp: obj.post_date
+});
+
+const makeDomainObj = obj => ({
+  _id: obj.id,
+  organisationName: obj.organisation,
+  registeredDomain: obj.domain,
+  domainDescription: obj.org_description,
+  reliabilityScore: obj.reliability,
+  articleCount: obj.article_count,
+  timeStamp: obj.date_added
+});
+
 async function buildOutput(domainId) {
   try {
     if (!domainId) {
@@ -26,29 +48,14 @@ async function buildOutput(domainId) {
         return obj;
       }, {});
     }
-    let singleDomain = await db.one(getOneDomain, [domainId]);
-    singleDomain = {
-      _id: singleDomain.id,
-      organisationName: singleDomain.organisation,
-      registeredDomain: singleDomain.domain,
-      domainDescription: singleDomain.org_description,
-      reliabilityScore: singleDomain.reliability,
-      articleCount: singleDomain.article_count,
-      timeStamp: singleDomain.date_added
-    };
-    let matchedArticles = await db.query(getArticlesByDomainId, [domainId]);
+    let domainData = await db.one(getOneDomain, [domainId]);
+    domainData = makeDomainObj(domainData);
+
+    let articles = await db.query(getArticlesByDomainId, [domainId]);
+    articles = articles.map(obj => makeArticleObj(obj));
+
     pgp.end();
-    matchedArticles = matchedArticles.map(obj => ({
-      _id: obj.id,
-      title: obj.title,
-      articleUrl: obj.href,
-      description: obj.description,
-      articleIsFakeNews: obj.is_fake,
-      pending: obj.pending,
-      timeStamp: obj.post_date,
-      organisation: obj.organisation
-    }));
-    return { domainData: singleDomain, articles: matchedArticles };
+    return { domainData: domainData, articles: articles };
   }
   catch (err) {
     return err;
