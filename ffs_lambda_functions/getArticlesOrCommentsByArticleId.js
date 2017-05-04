@@ -3,6 +3,8 @@ global._babelPolyfill || require('babel-polyfill');
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 
+const { articleObj, commentObj, responseObj } = require('../helpers/helpers');
+
 const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
 
@@ -26,41 +28,19 @@ const getCommentsByArticleId = `
   ON comments.user_id = users.id 
   WHERE comments.article_id = $1`;
 
-const makeArticleObj = obj => ({
-  _id: obj.id,
-  title: obj.title,
-  articleUrl: obj.href,
-  description: obj.description,
-  articleIsFakeNews: obj.is_fake,
-  pending: obj.pending,
-  organisation: obj.organisation,
-  domainId: obj.domain_id,
-  timeStamp: obj.post_date
-});
-
-const makeCommentsObj = obj => ({
-  _id: obj.id,
-  comment: obj.comment,
-  threadId: obj.connecting_comment_id,
-  articleId: obj.article_id,
-  author: obj.username,
-  votes: obj.votes,
-  timeStamp: obj.date_added
-});
-
 async function buildOutput(articleId) {
   try {
     if (!articleId) {
       const topTenArticles = await db.query(getTopTenArticles);
       pgp.end();
-      return topTenArticles.map(obj => makeArticleObj(obj));
+      return topTenArticles.map(obj => articleObj(obj));
     }
     let articleData = await db.one(getOneArticle, articleId);
-    articleData = makeArticleObj(articleData);
+    articleData = articleObj(articleData);
 
     let comments = await db.query(getCommentsByArticleId, articleId);
-    comments = comments.map(obj => makeCommentsObj(obj));
-    
+    comments = comments.map(obj => commentObj(obj));
+
     pgp.end();
     return { articleData: articleData, comments: comments };
   }
@@ -69,18 +49,10 @@ async function buildOutput(articleId) {
   }
 }
 
-module.exports.handler = (event, context, callback) => {
+module.exports.handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  const articleId = event.pathParameters ? event.pathParameters.article_id : null;
+  const articleId = event.pathParameters && event.pathParameters.article_id;
   buildOutput(articleId)
-    .then(res => callback(null, {
-      statusCode: '200',
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS 
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(res)
-    }))
-    .catch(err => callback(new Error(err)));
+    .then(res => cb(null, responseObj(res, 200)))
+    .catch(err => cb(new Error(err)));
 };

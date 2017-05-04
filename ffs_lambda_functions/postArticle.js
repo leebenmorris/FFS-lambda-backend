@@ -4,6 +4,8 @@ const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 const url = require('url');
 
+const { responseObj } = require('../helpers/helpers');
+
 const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
 
@@ -13,12 +15,10 @@ const getArticleId = 'SELECT id FROM articles WHERE href = $1';
 const addDomain = `
   INSERT INTO domains (domain) 
   VALUES ($1)
-  ON CONFICT DO NOTHING
   RETURNING id`;
 const addArticle = `
   INSERT INTO articles (title, domain_id, href, user_id) 
   VALUES ($1, $2, $3, $4)
-  ON CONFLICT DO NOTHING
   RETURNING id`;
 const addComment = `
   INSERT INTO comments (comment, user_id, article_id) 
@@ -53,8 +53,7 @@ async function updateTables(body) {
       return {
         message: 'article and domain already in database, and comment added to database',
         newArticle: false,
-        articleId: articleId,
-        statusCode: 201
+        articleId: articleId
       };
     }
 
@@ -83,8 +82,7 @@ async function updateTables(body) {
     return {
       message: 'article ' + andDomainText + 'added to database, and comment added to database',
       newArticle: true,
-      articleId: articleId,
-      statusCode: 201
+      articleId: articleId
     };
   }
   catch (err) {
@@ -95,14 +93,6 @@ async function updateTables(body) {
 module.exports.handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
   updateTables(event.body)
-    .then(res => cb(null, {
-      statusCode: '200',
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS 
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(res)
-    }))
+    .then(res => cb(null, responseObj(res, 200)))
     .catch(err => cb(new Error(err)));
 };

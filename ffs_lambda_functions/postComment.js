@@ -3,6 +3,8 @@ global._babelPolyfill || require('babel-polyfill');
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 
+const { responseObj } = require('../helpers/helpers');
+
 const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
 
@@ -20,7 +22,10 @@ async function updateTables(body) {
 
   try {
     await db.none(addComment, [comment, userId, threadId, articleId]);
-    return { status: 201 };
+    pgp.end();
+    return {
+      message: 'comment added to database'
+    };
   }
   catch (err) {
     return err;
@@ -30,14 +35,6 @@ async function updateTables(body) {
 module.exports.handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
   updateTables(event.body)
-    .then(res => cb(null, {
-      statusCode: '201',
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS 
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(res)
-    }))
+    .then(res => cb(null, responseObj(res, 201)))
     .catch(err => cb(new Error(err)));
 };
