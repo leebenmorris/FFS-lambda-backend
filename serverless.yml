@@ -99,3 +99,16 @@ functions:
       subnetIds:
         - subnet-cb56b486
         - subnet-1f38f364
+  searchData:
+    handler: searchData.handler
+    events:
+      - http:
+          method: GET
+          path: search-data
+          cors: true
+    vpc:
+      securityGroupIds:
+        - sg-43c84a2a
+      subnetIds:
+        - subnet-cb56b486
+        - subnet-1f38f364

@@ -15,10 +15,12 @@ const getArticleId = 'SELECT id FROM articles WHERE href = $1';
 const addDomain = `
   INSERT INTO domains (domain) 
   VALUES ($1)
+  ON CONFLICT DO NOTHING
   RETURNING id`;
 const addArticle = `
   INSERT INTO articles (title, domain_id, href, user_id) 
   VALUES ($1, $2, $3, $4)
+  ON CONFLICT DO NOTHING
   RETURNING id`;
 const addComment = `
   INSERT INTO comments (comment, user_id, article_id) 

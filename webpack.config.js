@@ -9,7 +9,8 @@ module.exports = {
     getDomainsOrArticlesByDomainId: './ffs_lambda_functions/getDomainsOrArticlesByDomainId',
     postArticle: './ffs_lambda_functions/postArticle',
     postComment: './ffs_lambda_functions/postComment',
-    changeArticleVotes: './ffs_lambda_functions/changeArticleVotes'
+    changeArticleVotes: './ffs_lambda_functions/changeArticleVotes',
+    searchData: './ffs_lambda_functions/searchData'
   },
   target: 'node',
   externals: [nodeExternals()], // exclude external modules
