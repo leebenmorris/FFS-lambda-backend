@@ -1,3 +1,6 @@
+const request = require("request");
+const url = require("url");
+
 const helpers = {};
 
 helpers.responseObj = (result, statusCode) => ({
@@ -8,6 +11,19 @@ helpers.responseObj = (result, statusCode) => ({
     "Content-Type": "application/json"
   },
   body: JSON.stringify(result)
+});
+
+helpers.resolveLongLink = eventBody => new Promise((resolve, reject) => {
+  const urlObj = url.parse(JSON.parse(eventBody).shortUrl);
+  request(
+    {
+      method: "HEAD",
+      url: 'https://' + (urlObj.hostname || '') + urlObj.pathname,
+      followAllRedirects: true,
+      headers: { 'User-Agent': 'request' }
+    },
+    (err, res) => err ? reject(err) : resolve({ longUrl: res.request.href })
+  );
 });
 
 helpers.articleObj = obj => ({

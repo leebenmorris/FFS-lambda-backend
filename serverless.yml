@@ -20,7 +20,7 @@ custom:
 
 functions:
   longLink:
-    handler: longLink.longLink
+    handler: longLink.handler
     events:
       - http:
           method: POST
