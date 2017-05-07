@@ -22,15 +22,40 @@ const createCommentsTable = (`
 const seedCommentsTable = (`
   INSERT INTO comments (comment, article_id, user_id, connecting_comment_id)
   VALUES 
-    ('hello comment 1', 1, 1, null), 
-    ('hello comment 2', 1, 1, 1), 
-    ('hello comment 3', 1, 1, 1), 
-    ('hello comment 4', 1, 1, 2), 
-    ('hello comment 5', 1, 1, 2),
-    ('hello comment 6', 1, 1, 3), 
-    ('hello comment 7', 1, 1, 3),
-    ('hello comment 8', 1, 1, 3), 
-    ('hello comment 9', 1, 1, 3)`
+    ('I don''t agree with this', 1, 1, null),  
+    ('They make some valid points...', 2, 2, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 3, 3, null),
+    ('I don''t agree with this', 4, 4, null),  
+    ('They make some valid points...', 5, 5, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 6, 1, null),
+    ('I don''t agree with this', 7, 1, null),  
+    ('They make some valid points...', 8, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 9, 1, null),
+    ('I don''t agree with this', 10, 1, null),  
+    ('They make some valid points...', 11, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 6, 1, null),
+    ('I don''t agree with this', 12, 1, null),  
+    ('They make some valid points...', 13, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 3, 1, null),
+    ('Blatant lies', 14, 1, null),
+    ('I don''t agree with this', 14, 2, 16), 
+    ('Down with this sort of thing', 14, 3, 17),
+    ('Fake news is mean', 14, 4, 18),
+    ('Putting the truth in post... with this post... because it''s true', 14, 4, 19),
+    ('They make some valid points...', 15, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 6, 1, null),
+    ('I don''t agree with this', 16, 1, null),  
+    ('They make some valid points...', 17, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 3, 1, null),
+    ('I don''t agree with this', 18, 1, null),  
+    ('They make some valid points...', 19, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 6, 1, null),
+    ('I don''t agree with this', 20, 1, null),  
+    ('They make some valid points...', 21, 1, null),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', 3, 1, null),
+    ('I don''t agree with this', 22, 1, null),  
+    ('They make some valid points...', 23, 1, null)
+    `
 );
 
 async function createComments() {

@@ -9,14 +9,14 @@ const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
 
 const getTopTenArticles = `
-  SELECT articles.*, domains.organisation 
+  SELECT articles.*, domains.organisation, domains.logo_url
   FROM articles 
   LEFT JOIN domains 
   ON articles.domain_id = domains.id 
   ORDER BY articles.post_date ASC 
   LIMIT 10`;
 const getOneArticle = `
-  SELECT articles.*, domains.organisation 
+  SELECT articles.*, domains.organisation, domains.logo_url
   FROM articles 
   LEFT JOIN domains 
   ON articles.domain_id = domains.id 

@@ -36,5 +36,3 @@
 //   })
 //   .catch(err => console.log(err))
 //   .then(pgp.end());
-
-console.log({up: 1, down: -1}[{1: 4}] || 0);

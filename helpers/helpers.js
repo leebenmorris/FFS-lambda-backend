@@ -18,6 +18,7 @@ helpers.articleObj = obj => ({
   articleIsFakeNews: obj.is_fake,
   pending: obj.pending,
   organisation: obj.organisation,
+  logoUrl: obj.logo_url,
   domainId: obj.domain_id,
   timeStamp: obj.post_date
 });
@@ -39,6 +40,7 @@ helpers.domainObj = obj => ({
   domainDescription: obj.org_description,
   reliabilityScore: obj.reliability,
   articleCount: obj.article_count,
+  logoUrl: obj.logo_url,
   timeStamp: obj.date_added
 });
 

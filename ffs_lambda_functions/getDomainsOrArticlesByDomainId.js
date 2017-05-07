@@ -11,7 +11,7 @@ const { articleObj, domainObj, responseObj } = require('../helpers/helpers');
 const getAllDomainsAndScores = `SELECT reliability, domain FROM domains`;
 const getOneDomain = `SELECT * FROM domains WHERE id = $1`;
 const getArticlesByDomainId = `
-  SELECT articles.*, domains.organisation 
+  SELECT articles.*, domains.organisation, domains.logo_url
   FROM articles 
   LEFT JOIN domains 
   ON articles.domain_id = domains.id 

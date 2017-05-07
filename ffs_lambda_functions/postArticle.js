@@ -15,13 +15,11 @@ const getArticleId = 'SELECT id FROM articles WHERE href = $1';
 const addDomain = `
   INSERT INTO domains (domain) 
   VALUES ($1)
-  ON CONFLICT DO NOTHING
-  RETURNING id`;
+  ON CONFLICT DO NOTHING`;
 const addArticle = `
   INSERT INTO articles (title, domain_id, href, user_id) 
   VALUES ($1, $2, $3, $4)
-  ON CONFLICT DO NOTHING
-  RETURNING id`;
+  ON CONFLICT DO NOTHING`;
 const addComment = `
   INSERT INTO comments (comment, user_id, article_id) 
   VALUES ($1, $2, $3)`;
@@ -31,6 +29,7 @@ const incrementArticleCountInDomainTable = `
   WHERE domains.id = $1`;
 
 async function updateTables(body) {
+  console.log(body);
   body = JSON.parse(body);
 
   const title = body.title;
@@ -64,20 +63,15 @@ async function updateTables(body) {
 
     if (!domainId) {
       await db.none(addDomain, articleDomain);
-
-      domainId = await db.oneOrNone(getDomainId, articleDomain);
-      domainId = domainId && domainId.id;
-
+      domainId = (await db.one(getDomainId, articleDomain)).id;
       andDomainText = 'and domain ';
     }
 
     await db.none(addArticle, [title, domainId, articleHref, userId]);
-
-    articleId = await db.oneOrNone(getArticleId, articleHref);
-    articleId = articleId && articleId.id;
+    articleId = (await db.oneOrNone(getArticleId, articleHref)).id;
     
     await db.none(incrementArticleCountInDomainTable, domainId);
-    
+
     await db.none(addComment, [comment, userId, articleId]);
     
     pgp.end();

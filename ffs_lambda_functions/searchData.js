@@ -20,6 +20,7 @@ const articleObj = obj => ({
   pending: obj.pending,
   userId: obj.user_id,
   domainId: obj.domain_id,
+  link: "articles",
   timeStamp: obj.post_date
 });
 
@@ -30,6 +31,7 @@ const domainObj = obj => ({
   organisationName: obj.organisation,
   domainDescription: obj.org_description,
   articleCount: obj.article_count,
+  link: "domains",
   timeStamp: obj.date_added
 });
 
