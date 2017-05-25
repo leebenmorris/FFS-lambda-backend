@@ -1,6 +1,5 @@
 const nodeExternals = require('webpack-node-externals');
 const path = require('path');
-const webpack = require('webpack');
 
 module.exports = {
   entry: {
@@ -8,31 +7,41 @@ module.exports = {
     getArticlesOrCommentsByArticleId: './ffs_lambda_functions/getArticlesOrCommentsByArticleId',
     getDomainsOrArticlesByDomainId: './ffs_lambda_functions/getDomainsOrArticlesByDomainId',
     postArticle: './ffs_lambda_functions/postArticle',
-    postComment: './ffs_lambda_functions/postComment',
-    changeArticleVotes: './ffs_lambda_functions/changeArticleVotes',
+    postComment: ['./ffs_lambda_functions/postComment'],  // in array to allow export of functions for testing
+    changeCommentVotes: './ffs_lambda_functions/changeCommentVotes',
     searchData: './ffs_lambda_functions/searchData'
   },
   target: 'node',
-  externals: [nodeExternals()], // exclude external modules
+  externals: [
+    // exclude all dev dependencies
+    nodeExternals() 
+  ],
   output: {
     libraryTarget: 'commonjs',
     path: path.join(__dirname, '.webpack'),
     filename: '[name].js'
   },
   module: {
-    loaders: [{
-      test: /\.js$/,
-      loaders: ['babel'],
-      include: __dirname,
-      exclude: /node_modules/,
-    }]
-  },
-  devtool: 'cheap-module-source-map',
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify('production')
+    loaders: [
+      {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        query: {
+          presets: [
+            [
+              // using babel env preset to specifically target the 6.10 environment in AWS Lambda
+              'env',    
+              {
+                targets: {
+                  node: '6.10'
+                }
+              }
+            ],
+            // using babel babili preset to minify code
+            'babili'    
+          ]
+        }
       }
-    })
-  ]
+    ]
+  }
 };

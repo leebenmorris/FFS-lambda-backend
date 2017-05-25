@@ -1,10 +1,32 @@
-global._babelPolyfill || require('babel-polyfill');
+const request = require("request");
+const url = require("url");
 
-const { resolveLongLink, responseObj } = require('../helpers/helpers');
+const { responseObj } = require('../helpers/helpers');
 
-module.exports.handler = (event, context, cb) => {
+const resolveLongLink = eventBody => new Promise((resolve, reject) => {
+  const urlObj = url.parse(eventBody.shortUrl);
+  request(
+    {
+      method: "HEAD",
+      url: 'https://' + (urlObj.hostname || '') + urlObj.pathname,
+      followAllRedirects: true,
+      headers: { 'User-Agent': 'request' }
+    },
+    (err, res) => err ? reject(err) : resolve({ longUrl: res.request.href })
+  );
+});
+
+const handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  resolveLongLink(event.body)
-    .then(res => cb(null, responseObj(res, 200)))
+  resolveLongLink(JSON.parse(event.body))
+    .then(res => {
+      console.log(res);
+      cb(null, responseObj(res, 200));
+    })
     .catch(err => cb(new Error(err)));
+};
+
+module.exports = {
+  handler,
+  resolveLongLink
 };

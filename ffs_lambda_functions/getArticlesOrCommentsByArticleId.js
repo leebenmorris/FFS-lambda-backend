@@ -1,5 +1,3 @@
-global._babelPolyfill || require('babel-polyfill');
-
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 
@@ -32,6 +30,7 @@ async function buildOutput(articleId) {
   try {
     if (!articleId) {
       const topTenArticles = await db.query(getTopTenArticles);
+      
       pgp.end();
       return topTenArticles.map(obj => articleObj(obj));
     }
@@ -44,15 +43,17 @@ async function buildOutput(articleId) {
     pgp.end();
     return { articleData: articleData, comments: comments };
   }
-  catch (err) {
-    return err;
-  }
+  catch (err) { return err; }
 }
 
-module.exports.handler = (event, context, cb) => {
+const handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
   const articleId = event.pathParameters && event.pathParameters.article_id;
   buildOutput(articleId)
     .then(res => cb(null, responseObj(res, 200)))
     .catch(err => cb(new Error(err)));
+};
+
+module.exports = {
+  handler
 };

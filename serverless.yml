@@ -1,4 +1,4 @@
-service: multiple-external
+service: ffs-backend
 
 package:
   individually: true
@@ -73,8 +73,8 @@ functions:
       subnetIds:
         - subnet-cb56b486
         - subnet-1f38f364
-  changeArticleVotes:
-    handler: changeArticleVotes.handler
+  changeCommentVotes:
+    handler: changeCommentVotes.handler
     events:
       - http:
           method: PUT

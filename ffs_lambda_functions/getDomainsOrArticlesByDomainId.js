@@ -1,5 +1,3 @@
-global._babelPolyfill || require('babel-polyfill');
-
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 
@@ -37,9 +35,7 @@ async function buildOutput(domainId) {
     pgp.end();
     return { domainData: domainData, articles: articles };
   }
-  catch (err) {
-    return err;
-  }
+  catch (err) { return err; }
 }
 
 module.exports.handler = (event, context, cb) => {

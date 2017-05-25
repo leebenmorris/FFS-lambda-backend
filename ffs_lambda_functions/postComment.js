@@ -1,5 +1,3 @@
-global._babelPolyfill || require('babel-polyfill');
-
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 
@@ -8,33 +6,34 @@ const { responseObj } = require('../helpers/helpers');
 const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
 
-const addComment = `
-  INSERT INTO comments (comment, user_id, connecting_comment_id, article_id) 
-  VALUES ($1, $2, $3, $4)`;
 
-async function updateTables(body) {
-  body = JSON.parse(body);
+async function postComment(eventBody) {
+  const query = `
+    INSERT INTO comments (comment, user_id, connecting_comment_id, article_id) 
+    VALUES ($1, $2, $3, $4)
+    RETURNING id`;
 
-  const comment = body.comment;
-  const userId = body.userId;
-  const threadId = body.threadId;
-  const articleId = body.articleId;
+  const { comment, userId, threadId, articleId } = eventBody;
 
   try {
-    await db.none(addComment, [comment, userId, threadId, articleId]);
+    const commentId = await db.one(query, [comment, userId, threadId, articleId]);
     pgp.end();
     return {
-      message: 'comment added to database'
+      message: 'comment added to database',
+      commentId: commentId.id
     };
   }
-  catch (err) {
-    return err;
-  }
+  catch (err) { return err; }
 }
 
-module.exports.handler = (event, context, cb) => {
+const handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  updateTables(event.body)
+  postComment(JSON.parse(event.body))
     .then(res => cb(null, responseObj(res, 201)))
     .catch(err => cb(new Error(err)));
+};
+
+module.exports = {
+  handler,
+  postComment
 };

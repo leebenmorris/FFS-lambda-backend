@@ -1,10 +1,9 @@
-global._babelPolyfill || require('babel-polyfill');
-
 const bluebird = require('bluebird');
 const pgp = require('pg-promise')({ promiseLib: bluebird });
 const url = require('url');
 
 const { responseObj } = require('../helpers/helpers');
+const { postComment } = require('./postComment');
 
 const dbCredentials = require('../dbCredentials/dbCredentials.js');
 const db = pgp(dbCredentials);
@@ -20,22 +19,14 @@ const addArticle = `
   INSERT INTO articles (title, domain_id, href, user_id) 
   VALUES ($1, $2, $3, $4)
   ON CONFLICT DO NOTHING`;
-const addComment = `
-  INSERT INTO comments (comment, user_id, article_id) 
-  VALUES ($1, $2, $3)`;
 const incrementArticleCountInDomainTable = `
   UPDATE domains 
   SET article_count = article_count + 1 
   WHERE domains.id = $1`;
 
-async function updateTables(body) {
-  console.log(body);
-  body = JSON.parse(body);
+async function updateTables(eventBody) {
 
-  const title = body.title;
-  const comment = body.comment;
-  const href = body.href;
-  const userId = body.userId;
+  const { title, comment, href, userId } = eventBody;
 
   const urlObj = url.parse(href);
   const articleHref = urlObj.protocol ? urlObj.hostname + urlObj.pathname : urlObj.pathname;
@@ -46,20 +37,23 @@ async function updateTables(body) {
   try {
     let articleId = await db.oneOrNone(getArticleId, articleHref);
     articleId = articleId && articleId.id;
-    
+
+    let domainId = await db.oneOrNone(getDomainId, articleDomain);
+    domainId = domainId && domainId.id;
+
     if (articleId) {
-      await db.none(addComment, [comment, userId, articleId]);
-      
+      const commentData = await postComment({ comment, userId, articleId });
+
       pgp.end();
       return {
         message: 'article and domain already in database, and comment added to database',
         newArticle: false,
-        articleId: articleId
+        articleId: articleId,
+        domainId: domainId,
+        commentId: commentData.commentId
       };
     }
 
-    let domainId = await db.oneOrNone(getDomainId, articleDomain);
-    domainId = domainId && domainId.id;
 
     if (!domainId) {
       await db.none(addDomain, articleDomain);
@@ -69,26 +63,26 @@ async function updateTables(body) {
 
     await db.none(addArticle, [title, domainId, articleHref, userId]);
     articleId = (await db.oneOrNone(getArticleId, articleHref)).id;
-    
+
     await db.none(incrementArticleCountInDomainTable, domainId);
 
-    await db.none(addComment, [comment, userId, articleId]);
-    
+    const commentData = await postComment({ comment, userId, articleId });
+
     pgp.end();
     return {
       message: 'article ' + andDomainText + 'added to database, and comment added to database',
       newArticle: true,
-      articleId: articleId
+      articleId: articleId,
+      domainId: domainId,
+      commentId: commentData.commentId
     };
   }
-  catch (err) {
-    return err;
-  }
+  catch (err) { return err; }
 }
 
 module.exports.handler = (event, context, cb) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  updateTables(event.body)
+  updateTables(JSON.parse(event.body))
     .then(res => cb(null, responseObj(res, 200)))
     .catch(err => cb(new Error(err)));
 };
